@@ -1,0 +1,14 @@
+#!/bin/sh
+
+import arguments.sh
+import history.sh
+
+import git:install/sed.sh
+
+import git:git/data.app.sh
+
+conf git
+_git_init
+
+_browser_configure
+_launch
