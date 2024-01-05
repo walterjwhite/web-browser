@@ -13,8 +13,12 @@ _browser_new_instance() {
 
 	find $_INSTANCE_DIRECTORY -type f ! -name '*.sqlite' -exec $_CONF_INSTALL_GNU_SED -i "s/$home_directory_sed_safe/$instance_dir_sed_safe/g" {} +
 
-	_SQLITE_DATABASE=$_INSTANCE_DIRECTORY/.mozilla/librewolf/rcsf1nmn.default-release/places.sqlite
 	_QUERY="SELECT url,ROUND(last_visit_date / 1000000) FROM moz_places WHERE VISIT_COUNT > 0 ORDER BY last_visit_date DESC"
+}
+
+_history_file() {
+	_SQLITE_DATABASE=$(find $_INSTANCE_DIRECTORY -type f -name 'places.sqlite')
+	[ $_SQLITE_DATABASE ] || _error "Error locating places database"
 }
 
 _browser_remote_debug() {

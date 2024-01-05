@@ -1,4 +1,8 @@
+import git:install/download.sh
+import git:install/extract.sh
+
 BROWSER_CMD=chrome
+
 
 case $_PLATFORM in
 Linux | FreeBSD)
@@ -33,6 +37,8 @@ _browser_new_instance() {
 
 	_SQLITE_DATABASE=$chromium_instance_dir/Default/History
 	_QUERY="SELECT url,ROUND(LAST_VISIT_TIME/1000000) FROM urls WHERE url NOT LIKE 'chrome-extension://%' ORDER BY last_visit_time DESC"
+
+	_browser_extensions
 }
 
 _browser_remote_debug() {
@@ -56,4 +62,40 @@ _browser_http_proxy() {
 
 _browser_socks_proxy() {
 	_browser_add_args "--proxy-server=socks${_CONF_WEB_BROWSER_SOCKS_PROXY_VERSION}://$_WEB_BROWSER_SOCKS_PROXY"
+}
+
+_browser_extensions() {
+	local extension_config extension_name extension_version
+	for extension_config in $(cat $_CONFIGURATION_DIRECTORY/extensions); do
+		_browser_extension $extension_config
+	done
+}
+
+_browser_extension() {
+	extension_name=${1%%:*}
+	extension_version=${1#*:}
+
+	case $extension_name in
+	ublock-origin)
+		_browser_extension_load https://github.com/gorhill/uBlock/releases/download/${extension_version}/uBlock0_${extension_version}.chromium.zip $extension_name $extension_version
+		mv $_INSTANCE_DIRECTORY/unpacked-extensions/$extension_name/uBlock0.chromium/* $_INSTANCE_DIRECTORY/unpacked-extensions/$extension_name
+		rm -rf $_INSTANCE_DIRECTORY/unpacked-extensions/$extension_name/uBlock0.chromium
+		;;
+	Browserpass)
+		_browser_extension_load https://github.com/browserpass/browserpass-extension/releases/download/${extension_version}/browserpass-github-${extension_version}.crx $extension_name $extension_version
+		;;
+	Ghostery)
+		_browser_extension_load https://github.com/ghostery/ghostery-extension/releases/download/v${extension_version}/ghostery-chrome-v${extension_version}.zip $extension_name $extension_version
+		;;
+	*)
+		_warn "Unsupported extension: $extension_name"
+		continue
+		;;
+	esac
+}
+
+_browser_extension_load() {
+	_download $1 ${2}-$3.crx.zip
+	_extract $_CONF_INSTALL_CACHE_PATH/$extension_name-$extension_version.crx.zip $_INSTANCE_DIRECTORY/unpacked-extensions/$extension_name
+	_browser_add_args "--load-extension=$_INSTANCE_DIRECTORY/unpacked-extensions/$extension_name"
 }
