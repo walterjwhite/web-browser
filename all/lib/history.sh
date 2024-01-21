@@ -1,11 +1,11 @@
 _export_history() {
-	if [ -z "$_SQLITE_DATABASE" ]; then
-		return
-	fi
+	[ -z "$_SQLITE_DATABASE" ] && {
+		_call _history_file || return 1
 
-	if [ -n "$_ORIGINAL_HOME" ]; then
-		HOME=$_ORIGINAL_HOME
-	fi
+		[ -z "$_SQLITE_DATABASE" ] && return 2
+	}
+
+	[ -n "$_ORIGINAL_HOME" ] && HOME=$_ORIGINAL_HOME
 
 	_HISTORY_FILE=$_CONF_INSTALL_APPLICATION_DATA_PATH/history/$_CONF_WEB_BROWSER_BROWSER-$_CONF_INSTALL_CONTEXT/$(date "+%Y%m%d%H%M%S")
 	_info "$_CONF_INSTALL_CONTEXT browser history >$_HISTORY_FILE"
